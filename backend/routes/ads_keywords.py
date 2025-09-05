@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, BackgroundTasks
 from typing import Union, List
 from sqlalchemy.orm import Session
 from backend.database import get_db
@@ -6,6 +6,7 @@ from backend.models.ads_keyword import ADSKeyword
 from backend.models.listing import Listing
 from backend.schemas.ads_keyword import ADSKeywordCreate, ADSKeywordOut
 from ..auth import get_token
+from ..translator import add_translations
 
 router = APIRouter(prefix="/ads-keywords",
                    tags=["ADS keywords"],
@@ -31,6 +32,7 @@ def get_ads_keywords(
 
 @router.post("/", response_model=list[ADSKeywordOut])
 def create_ads_keyword(
+    background_tasks: BackgroundTasks,
     data: Union[ADSKeywordCreate, List[ADSKeywordCreate]],
     db: Session = Depends(get_db)
 ):
@@ -68,5 +70,7 @@ def create_ads_keyword(
     db.commit()
     for kw in new_keywords:
         db.refresh(kw)
+
+    background_tasks.add_task(add_translations, db)
 
     return new_keywords
