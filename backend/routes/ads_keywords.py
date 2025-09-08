@@ -44,42 +44,56 @@ def create_ads_keyword(
 
     for item in data:
 
-        existing = db.query(Listing).filter(Listing.listing_id == item.listing_id).first()
-        if not existing:
+        existing_listing = db.query(Listing).filter(Listing.listing_id == item.listing_id).first()
+        if not existing_listing:
             raise HTTPException(
                 status_code=400,
                 detail=f"Listing with listing_id={item.listing_id} does not exist"
             )
 
-        new_kw = ADSKeyword(
-            keyword=item.keyword,
-            translation=item.translation,
-            original_language=item.original_language,
-            listing_id=item.listing_id,
-            views=item.views,
-            clicks=item.clicks,
-            click_rate=item.click_rate,
-            orders=item.orders,
-            revenue=item.revenue,
-            spend=item.spend,
-            roas=item.roas,
-            ad=item.ad,
-            approved=item.approved,
-        )
-        db.add(new_kw)
-        new_keywords.append(new_kw)
-        if new_kw.translation and new_kw.original_language:
-            new_translation = Translation(
-                original_text=new_kw.keyword,
-                translated_text=new_kw.translation,
-                detected_language=new_kw.original_language)
-            db.add(new_translation)
+        existing_kw = db.query(ADSKeyword).filter(ADSKeyword.listing_id == item.listing_id,
+                                                  ADSKeyword.keyword == item.keyword).first()
+        if existing_kw:
+            existing_kw.views = item.views
+            existing_kw.clicks = item.clicks
+            existing_kw.click_rate = item.click_rate
+            existing_kw.orders = item.orders
+            existing_kw.revenue = item.revenue
+            existing_kw.spend = item.spend
+            existing_kw.roas = item.roas
+            existing_kw.ad = item.ad
+            existing_kw.approved = item.approved
+            new_keywords.append(existing_kw)
         else:
-            translator = Translator(db, new_kw.keyword)
-            new_translation = translator.get_translate()
-            if new_translation:
-                new_kw.translation = new_translation.translation
-                new_kw.original_language = new_translation.original_language
+            new_kw = ADSKeyword(
+                keyword=item.keyword,
+                translation=item.translation,
+                original_language=item.original_language,
+                listing_id=item.listing_id,
+                views=item.views,
+                clicks=item.clicks,
+                click_rate=item.click_rate,
+                orders=item.orders,
+                revenue=item.revenue,
+                spend=item.spend,
+                roas=item.roas,
+                ad=item.ad,
+                approved=item.approved,
+            )
+            db.add(new_kw)
+            new_keywords.append(new_kw)
+            if new_kw.translation and new_kw.original_language:
+                new_translation = Translation(
+                    original_text=new_kw.keyword,
+                    translated_text=new_kw.translation,
+                    detected_language=new_kw.original_language)
+                db.add(new_translation)
+            else:
+                translator = Translator(db, new_kw.keyword)
+                new_translation = translator.get_translate()
+                if new_translation:
+                    new_kw.translation = new_translation.translation
+                    new_kw.original_language = new_translation.original_language
 
     db.commit()
     for kw in new_keywords:
