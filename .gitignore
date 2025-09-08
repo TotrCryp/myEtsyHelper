@@ -208,4 +208,5 @@ __marimo__/
 
 frontend/
 backend/db/
+testing/
 .idea

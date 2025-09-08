@@ -6,7 +6,7 @@ from backend.models.ads_keyword import ADSKeyword
 from backend.models.listing import Listing
 from backend.schemas.ads_keyword import ADSKeywordCreate, ADSKeywordOut
 from ..auth import get_token
-from ..translator import add_translations
+from ..translator import Translation, Translator, add_translations
 
 router = APIRouter(prefix="/ads-keywords",
                    tags=["ADS keywords"],
@@ -53,6 +53,8 @@ def create_ads_keyword(
 
         new_kw = ADSKeyword(
             keyword=item.keyword,
+            translation=item.translation,
+            original_language=item.original_language,
             listing_id=item.listing_id,
             views=item.views,
             clicks=item.clicks,
@@ -66,11 +68,23 @@ def create_ads_keyword(
         )
         db.add(new_kw)
         new_keywords.append(new_kw)
+        if new_kw.translation and new_kw.original_language:
+            new_translation = Translation(
+                original_text=new_kw.keyword,
+                translated_text=new_kw.translation,
+                detected_language=new_kw.original_language)
+            db.add(new_translation)
+        else:
+            translator = Translator(db, new_kw.keyword)
+            new_translation = translator.get_translate()
+            if new_translation:
+                new_kw.translation = new_translation.translation
+                new_kw.original_language = new_translation.original_language
 
     db.commit()
     for kw in new_keywords:
         db.refresh(kw)
 
-    background_tasks.add_task(add_translations, db)
+    background_tasks.add_task(add_translations)
 
     return new_keywords

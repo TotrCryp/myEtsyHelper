@@ -4,59 +4,46 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from backend.models.translations import Translation
 from backend.models.ads_keyword import ADSKeyword
-
-LIBRETRANSLATE_URL = os.getenv("LIBRETRANSLATE_URL", "http://localhost:5000/translate")
-LIBRETRANSLATE_API_KEY = os.getenv("LIBRETRANSLATE_API_KEY", "")
+from backend.database import SessionLocal
 
 
-def translate_text(text: str, target_lang: str = "uk"):
-    with httpx.Client() as client:
-        response = client.post(
-            LIBRETRANSLATE_URL,
-            json={
-                "q": text,
-                "source": "auto",
-                "target": target_lang,
-                "format": "text",
-                "alternatives": 1,
-                "api_key": LIBRETRANSLATE_API_KEY
+class BaseTranslator:
+    def __init__(self, db: Session, text: str, target_lang: str = "uk",  **kwargs):
+        self.db = db
+        self.text = text
+        self.target_lang = target_lang
+        self.translation = None
+        self.original_language = None
+
+    def translate_text(self, **kwargs):
+        pass
+
+    def get_translate(self):
+        translation = self.db.query(Translation).filter_by(
+            original_text=self.text
+        ).first()
+        if translation:
+            return {
+                "translation": translation.translated_text,
+                "original_language": translation.detected_language,
             }
-        )
-        response.raise_for_status()
-        data = response.json()
-        return data
+
+        self.translate_text()
+        if self.translation and self.original_language:
+            return {
+                "translation": self.translation,
+                "original_language": self.original_language,
+            }
+
+        return None
 
 
-def get_translate(db: Session, text: str):
-
-    translation = db.query(Translation).filter_by(
-        original_text=text
-    ).first()
-
-    if translation:
-        return {
-            "translation": translation.translated_text,
-            "original_language": translation.detected_language,
-        }
-
-    data = translate_text(text)
-    detected = data.get("detectedLanguage")
-    new_translation = Translation(
-        original_text=text,
-        translated_text=data["translatedText"],
-        detected_language=detected.get("language") if isinstance(detected, dict) else None
-    )
-    db.add(new_translation)
-    db.commit()
-    db.refresh(new_translation)
-
-    return {
-        "translation": new_translation.translated_text,
-        "original_language": new_translation.detected_language,
-    }
+class Translator(BaseTranslator):
+    pass
 
 
-def add_translations(db: Session):
+def add_translations():
+    db = SessionLocal()
     keywords = db.query(ADSKeyword).filter(
         or_(
             ADSKeyword.translation.is_(None),
@@ -65,8 +52,9 @@ def add_translations(db: Session):
     ).all()
 
     for keyword in keywords:
-        result = get_translate(db, keyword.keyword)
-        keyword.translation = result["translation"]
-        keyword.original_language = result.get("original_language")
-
+        translator = Translator(db, keyword.keyword)
+        new_translation = translator.get_translate()
+        if new_translation:
+            keyword.translation = new_translation["translation"]
+            keyword.original_language = new_translation["original_language"]
     db.commit()

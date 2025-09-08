@@ -18,7 +18,8 @@ class ADSKeywordBase(BaseModel):
 
 
 class ADSKeywordCreate(ADSKeywordBase):
-    pass
+    translation: Optional[str] = None
+    original_language: Optional[str] = None
 
 
 class ADSKeywordOut(ADSKeywordBase):
