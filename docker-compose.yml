@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    container_name: etsy_helper_backend
+    restart: unless-stopped
+    volumes:
+      - backend_data:/app/db
+    environment:
+      API_TOKEN: my_token
+    ports:
+      - "8000:8000"
+
+  nginx:
+    image: nginx:latest
+    container_name: etsy_helper_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  backend_data:
