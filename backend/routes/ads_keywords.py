@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException, BackgroundTasks
 from typing import Union, List
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models.ads_keyword import ADSKeyword
+from backend.models.ads_keyword import ADSKeyword, KeywordStatus
 from backend.models.listing import Listing
 from backend.schemas.ads_keyword import ADSKeywordCreate, ADSKeywordOut
 from ..auth import get_token
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/ads-keywords",
 @router.get("/", response_model=list[ADSKeywordOut])
 def get_ads_keywords(
     listing_id: int | None = Query(None, description="ID лістингу для фільтрації"),
-    approved: bool | None = Query(None, description="Фільтрувати за статусом approved"),
+    status: str | None = Query(None, description="Фільтрувати за статусом"),
     db: Session = Depends(get_db)
 ):
     query = db.query(ADSKeyword)
@@ -24,8 +24,8 @@ def get_ads_keywords(
     if listing_id is not None:
         query = query.filter(ADSKeyword.listing_id == listing_id)
 
-    if approved is not None:
-        query = query.filter(ADSKeyword.approved == approved)
+    if status is not None:
+        query = query.filter(ADSKeyword.status == status.upper())
 
     return query.all()
 
@@ -37,12 +37,21 @@ def create_ads_keyword(
     db: Session = Depends(get_db)
 ):
 
+    new_keywords = []
+
     if isinstance(data, ADSKeywordCreate):
         data = [data]
 
-    new_keywords = []
+    seen: set[tuple[int, str]] = set()
+    unique_items = []
 
     for item in data:
+        key = (item.listing_id, item.keyword)
+        if key not in seen:
+            seen.add(key)
+            unique_items.append(item)
+
+    for item in unique_items:
 
         existing_listing = db.query(Listing).filter(Listing.listing_id == item.listing_id).first()
         if not existing_listing:
@@ -62,7 +71,7 @@ def create_ads_keyword(
             existing_kw.spend = item.spend
             existing_kw.roas = item.roas
             existing_kw.ad = item.ad
-            existing_kw.approved = item.approved
+            existing_kw.status = item.status
             new_keywords.append(existing_kw)
         else:
             new_kw = ADSKeyword(
@@ -78,7 +87,7 @@ def create_ads_keyword(
                 spend=item.spend,
                 roas=item.roas,
                 ad=item.ad,
-                approved=item.approved,
+                status=KeywordStatus.NEW,
             )
             db.add(new_kw)
             new_keywords.append(new_kw)

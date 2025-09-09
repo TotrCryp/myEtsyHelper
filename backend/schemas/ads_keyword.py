@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, constr
 from typing import Optional
 from .listing import ListingOut
+from backend.models.ads_keyword import KeywordStatus
 
 
 class ADSKeywordBase(BaseModel):
@@ -14,7 +15,7 @@ class ADSKeywordBase(BaseModel):
     spend: float = 0.0
     roas: float = 0.0
     ad: bool = False
-    approved: bool = False
+    status: Optional[KeywordStatus] = KeywordStatus.NEW
 
 
 class ADSKeywordCreate(ADSKeywordBase):

@@ -10,7 +10,7 @@ from backend.database import SessionLocal
 class BaseTranslator:
     def __init__(self, db: Session, text: str, target_lang: str = "uk",  **kwargs):
         self.db = db
-        self.text = text
+        self.text = text.lower()
         self.target_lang = target_lang
         self.translation = None
         self.original_language = None
