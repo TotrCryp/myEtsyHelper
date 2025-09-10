@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, constr
 from typing import Optional
 from .listing import ListingOut
-from backend.models.ads_keyword import KeywordStatus
+from ..models.ads_keyword import KeywordStatus
 
 
 class ADSKeywordBase(BaseModel):

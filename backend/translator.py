@@ -2,9 +2,9 @@ import httpx
 import os
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from backend.models.translations import Translation
-from backend.models.ads_keyword import ADSKeyword
-from backend.database import SessionLocal
+from .models.translations import Translation
+from .models.ads_keyword import ADSKeyword
+from .database import SessionLocal
 
 TRANSLATE_URL = os.getenv("TRANSLATE_URL", "")
 TRANSLATE_API_KEY = os.getenv("TRANSLATE_API_KEY", "")
