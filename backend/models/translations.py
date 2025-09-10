@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import validates
-from ..database import Base
+from backend.database import Base
 
 
 class Translation(Base):

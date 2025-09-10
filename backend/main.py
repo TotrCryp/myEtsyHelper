@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import Base, engine
-from .routes import ads_keywords, listings
+from backend.database import Base, engine
+from backend.routes import ads_keywords, listings
 
 
 # створюємо таблиці, якщо ще немає

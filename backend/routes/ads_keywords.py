@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, BackgroundTasks
 from typing import Union, List
 from sqlalchemy.orm import Session
-from ..database import get_db
-from ..models.ads_keyword import ADSKeyword, KeywordStatus
-from ..models.listing import Listing
-from ..schemas.ads_keyword import ADSKeywordCreate, ADSKeywordOut
-from ..auth import get_token
-from ..translator import Translation, Translator, add_translations
+from backend.database import get_db
+from backend.models.ads_keyword import ADSKeyword, KeywordStatus
+from backend.models.listing import Listing
+from backend.schemas.ads_keyword import ADSKeywordCreate, ADSKeywordOut
+from backend.auth import get_token
+from backend.translator import Translation, Translator, add_translations
 
 router = APIRouter(prefix="/ads-keywords",
                    tags=["ADS keywords"],

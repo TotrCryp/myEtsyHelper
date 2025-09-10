@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import Column, Enum as SQLEnum, Integer, String, Float, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
-from ..database import Base
+from backend.database import Base
 
 
 class KeywordStatus(enum.Enum):
