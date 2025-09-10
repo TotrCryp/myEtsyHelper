@@ -9,6 +9,8 @@ services:
       - backend_data:/app/db
     environment:
       API_TOKEN: super-secret-token
+      TRANSLATE_URL: http://0.0.0.0:5000/translate
+      TRANSLATE_API_KEY: super-secret-token-for_translator
     ports:
       - "8000:8000"
 
