@@ -1,13 +1,20 @@
 FROM python:3.11-slim
 
+# Робоча директорія всередині контейнера
 WORKDIR /app
 
-# Копіюємо залежності
+# Скопіювати requirements і встановити залежності
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копіюємо код
+# Скопіювати весь бекенд
 COPY . .
 
-# Старт FastAPI
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Створюємо папку для бази даних
+RUN mkdir -p db
+
+# Виставляємо порт
+EXPOSE 8000
+
+# Запуск FastAPI через uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

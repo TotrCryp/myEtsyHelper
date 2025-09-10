@@ -6,7 +6,7 @@ services:
     container_name: etsy_helper_backend
     restart: unless-stopped
     volumes:
-      - backend_data:/app/db
+      - backend_data:/app/db   # монтуємо volume для SQLite
     environment:
       API_TOKEN: super-secret-token
       TRANSLATE_URL: http://0.0.0.0:5000/translate
