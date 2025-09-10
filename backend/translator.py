@@ -6,16 +6,19 @@ from backend.models.translations import Translation
 from backend.models.ads_keyword import ADSKeyword
 from backend.database import SessionLocal
 
+TRANSLATE_URL = os.getenv("TRANSLATE_URL", "")
+TRANSLATE_API_KEY = os.getenv("TRANSLATE_API_KEY", "")
+
 
 class BaseTranslator:
-    def __init__(self, db: Session, text: str, target_lang: str = "uk",  **kwargs):
+    def __init__(self, db: Session, text: str, target_lang: str = "uk"):
         self.db = db
         self.text = text.lower()
         self.target_lang = target_lang
         self.translation = None
         self.original_language = None
 
-    def translate_text(self, **kwargs):
+    def translate_text(self):
         pass
 
     def get_translate(self):
@@ -39,7 +42,37 @@ class BaseTranslator:
 
 
 class Translator(BaseTranslator):
-    pass
+    def translate_text(self):
+        if not TRANSLATE_URL or not TRANSLATE_API_KEY:
+            return
+        try:
+            with httpx.Client(timeout=60) as client:
+                response = client.post(
+                    TRANSLATE_URL,
+                    json={
+                        "q": self.text,
+                        "source": "auto",
+                        "target": self.target_lang,
+                        "format": "text",
+                        "api_key": TRANSLATE_API_KEY,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+        except (httpx.RequestError, httpx.HTTPStatusError, ValueError):
+            return
+
+        translated_text = data.get("translatedText")
+        detected_lang = data.get("detectedLanguage", {}).get("language")
+
+        if translated_text and detected_lang:
+            self.translation = translated_text
+            self.original_language = detected_lang
+            new_translation = Translation(
+                original_text=self.text,
+                translated_text=self.translation,
+                detected_language=self.original_language)
+            self.db.add(new_translation)
 
 
 def add_translations():

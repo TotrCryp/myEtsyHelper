@@ -97,12 +97,12 @@ def create_ads_keyword(
                     translated_text=new_kw.translation,
                     detected_language=new_kw.original_language)
                 db.add(new_translation)
-            else:
-                translator = Translator(db, new_kw.keyword)
-                new_translation = translator.get_translate()
-                if new_translation:
-                    new_kw.translation = new_translation.translation
-                    new_kw.original_language = new_translation.original_language
+            # else:
+            #     translator = Translator(db, new_kw.keyword)
+            #     new_translation = translator.get_translate()
+            #     if new_translation:
+            #         new_kw.translation = new_translation.translation
+            #         new_kw.original_language = new_translation.original_language
 
     db.commit()
     for kw in new_keywords:
