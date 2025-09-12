@@ -1,14 +1,14 @@
 FROM python:3.11-slim
 
 # Робоча директорія всередині контейнера
-WORKDIR /app
+WORKDIR /backend
 
 # Скопіювати requirements і встановити залежності
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Скопіювати весь бекенд
-COPY . ./backend
+COPY . .
 
 # Створюємо папку для бази даних
 RUN mkdir -p db
