@@ -8,7 +8,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Скопіювати весь бекенд
-COPY backend ./backend
+COPY . ./backend
 
 # Створюємо папку для бази даних
 RUN mkdir -p db
@@ -17,4 +17,4 @@ RUN mkdir -p db
 EXPOSE 8000
 
 # Запуск FastAPI через uvicorn
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
